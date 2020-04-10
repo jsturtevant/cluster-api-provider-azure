@@ -7,7 +7,7 @@ spec:
   clusterNetwork:
     pods:
       cidrBlocks:
-      - 192.168.0.0/16
+      - ${CLUSTER_CIDR}
   controlPlaneRef:
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
     kind: KubeadmControlPlane
@@ -27,6 +27,7 @@ spec:
   networkSpec:
     vnet:
       name: ${AZURE_VNET_NAME}
+      IPv6Enabled: "${IPV6_ENABLED}"
   resourceGroup: ${AZURE_RESOURCE_GROUP}
   subscriptionID: ${AZURE_SUBSCRIPTION_ID}
 ---

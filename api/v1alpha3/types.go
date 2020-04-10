@@ -65,6 +65,12 @@ type VnetSpec struct {
 	// CidrBlock is the CIDR block to be used when the provider creates a managed virtual network.
 	CidrBlock string `json:"cidrBlock,omitempty"`
 
+	// Ipv6CidrBlock is the cidr block if IPv6 is is enabled
+	IPv6CidrBlock string `json:"iPv6CidrBlock,omitempty"`
+
+	// EnableIPv6 turns IPv6 on
+	IPv6Enabled bool `json:"iPv6Enabled,omitempty"`
+
 	// Tags is a collection of tags describing the resource.
 	Tags Tags `json:"tags,omitempty"`
 }
@@ -342,6 +348,9 @@ type SubnetSpec struct {
 	// CidrBlock is the CIDR block to be used when the provider creates a managed Vnet.
 	// +optional
 	CidrBlock string `json:"cidrBlock,omitempty"`
+
+	// Ipv6CidrBlock is the cidr block if IPv6 is is enabled
+	IPv6CidrBlock string `json:"IPv6CidrBlock,omitempty"`
 
 	// InternalLBIPAddress is the IP address that will be used as the internal LB private IP.
 	// For the control plane subnet only.
