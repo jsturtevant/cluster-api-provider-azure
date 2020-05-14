@@ -92,6 +92,12 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		vnet.DeepCopyInto(s.Scope.Vnet())
 		return nil
 	}
+
+	addressPrefixes := []string{vnetSpec.CIDR}
+	if vnet.IPv6Enabled {
+		addressPrefixes = append(addressPrefixes, vnetSpec.CIDR)
+	}
+
 	klog.V(2).Infof("creating vnet %s ", vnetSpec.Name)
 	vnetProperties := network.VirtualNetwork{
 		Tags: converters.TagsToMap(infrav1.Build(infrav1.BuildParams{
@@ -104,7 +110,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		Location: to.StringPtr(s.Scope.Location()),
 		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 			AddressSpace: &network.AddressSpace{
-				AddressPrefixes: &[]string{vnetSpec.CIDR},
+				AddressPrefixes: &addressPrefixes,
 			},
 		},
 	}
