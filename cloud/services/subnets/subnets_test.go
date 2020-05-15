@@ -62,7 +62,7 @@ func TestReconcileSubnets(t *testing.T) {
 			name: "subnet does not exist",
 			subnetSpec: Spec{
 				Name:                "my-subnet",
-				CIDR:                "10.0.0.0/16",
+				CIDRs:               []string{"10.0.0.0/16"},
 				VnetName:            "my-vnet",
 				RouteTableName:      "my-subnet_route_table",
 				SecurityGroupName:   "my-sg",
@@ -89,7 +89,7 @@ func TestReconcileSubnets(t *testing.T) {
 			name: "vnet was provided but subnet is missing",
 			subnetSpec: Spec{
 				Name:                "my-subnet",
-				CIDR:                "10.0.0.0/16",
+				CIDRs:               []string{"10.0.0.0/16"},
 				VnetName:            "custom-vnet",
 				RouteTableName:      "my-subnet_route_table",
 				SecurityGroupName:   "my-sg",
@@ -108,7 +108,7 @@ func TestReconcileSubnets(t *testing.T) {
 			name: "vnet was provided and subnet exists",
 			subnetSpec: Spec{
 				Name:                "my-subnet",
-				CIDR:                "10.0.0.0/16",
+				CIDRs:               []string{"10.0.0.0/16"},
 				VnetName:            "my-vnet",
 				RouteTableName:      "my-subnet_route_table",
 				SecurityGroupName:   "my-sg",
@@ -208,7 +208,7 @@ func TestDeleteSubnets(t *testing.T) {
 			name: "subnet exists",
 			subnetSpec: Spec{
 				Name:                "my-subnet",
-				CIDR:                "10.0.0.0/16",
+				CIDRs:               []string{"10.0.0.0/16"},
 				VnetName:            "my-vnet",
 				RouteTableName:      "my-subnet_route_table",
 				SecurityGroupName:   "my-sg",
@@ -224,7 +224,7 @@ func TestDeleteSubnets(t *testing.T) {
 			name: "subnet already deleted",
 			subnetSpec: Spec{
 				Name:                "my-subnet",
-				CIDR:                "10.0.0.0/16",
+				CIDRs:               []string{"10.0.0.0/16"},
 				VnetName:            "my-vnet",
 				RouteTableName:      "my-subnet_route_table",
 				SecurityGroupName:   "my-sg",
@@ -241,7 +241,7 @@ func TestDeleteSubnets(t *testing.T) {
 			name: "skip delete if vnet is managed",
 			subnetSpec: Spec{
 				Name:                "my-subnet",
-				CIDR:                "10.0.0.0/16",
+				CIDRs:               []string{"10.0.0.0/16"},
 				VnetName:            "custom-vnet",
 				RouteTableName:      "my-subnet_route_table",
 				SecurityGroupName:   "my-sg",

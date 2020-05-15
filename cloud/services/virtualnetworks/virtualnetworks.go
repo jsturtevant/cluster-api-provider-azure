@@ -32,7 +32,7 @@ import (
 type Spec struct {
 	ResourceGroup string
 	Name          string
-	CIDR          string
+	CIDRs         []string
 }
 
 // Get provides information about a virtual network.
@@ -49,10 +49,15 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.VnetSpec,
 		return nil, errors.Wrapf(err, "failed to get vnet %s", vnetSpec.Name)
 	}
 	cidr := ""
+	cidrIpv6 := ""
 	if vnet.VirtualNetworkPropertiesFormat != nil && vnet.VirtualNetworkPropertiesFormat.AddressSpace != nil {
 		prefixes := to.StringSlice(vnet.VirtualNetworkPropertiesFormat.AddressSpace.AddressPrefixes)
 		if prefixes != nil && len(prefixes) > 0 {
 			cidr = prefixes[0]
+		}
+
+		if prefixes != nil && len(prefixes) > 1 {
+			cidrIpv6 = prefixes[1]
 		}
 	}
 	return &infrav1.VnetSpec{
@@ -60,6 +65,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.VnetSpec,
 		ID:            to.String(vnet.ID),
 		Name:          to.String(vnet.Name),
 		CidrBlock:     cidr,
+		IPv6CidrBlock: cidrIpv6,
 		Tags:          converters.MapToTags(vnet.Tags),
 	}, nil
 }
@@ -93,11 +99,6 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		return nil
 	}
 
-	addressPrefixes := []string{vnetSpec.CIDR}
-	if vnet.IPv6Enabled {
-		addressPrefixes = append(addressPrefixes, vnetSpec.CIDR)
-	}
-
 	klog.V(2).Infof("creating vnet %s ", vnetSpec.Name)
 	vnetProperties := network.VirtualNetwork{
 		Tags: converters.TagsToMap(infrav1.Build(infrav1.BuildParams{
@@ -110,7 +111,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		Location: to.StringPtr(s.Scope.Location()),
 		VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
 			AddressSpace: &network.AddressSpace{
-				AddressPrefixes: &addressPrefixes,
+				AddressPrefixes: &vnetSpec.CIDRs,
 			},
 		},
 	}

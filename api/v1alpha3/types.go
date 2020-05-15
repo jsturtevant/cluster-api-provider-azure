@@ -62,6 +62,7 @@ type VnetSpec struct {
 	// Name defines a name for the virtual network resource.
 	Name string `json:"name"`
 
+	//TODO should just make this a list as is done in https://docs.microsoft.com/en-us/cli/azure/network/vnet?view=azure-cli-latest#az-network-vnet-create
 	// CidrBlock is the CIDR block to be used when the provider creates a managed virtual network.
 	CidrBlock string `json:"cidrBlock,omitempty"`
 

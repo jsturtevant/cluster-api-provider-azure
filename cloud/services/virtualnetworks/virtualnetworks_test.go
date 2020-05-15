@@ -166,7 +166,7 @@ func TestReconcileVnet(t *testing.T) {
 			vnetSpec := &Spec{
 				Name:          clusterScope.Vnet().Name,
 				ResourceGroup: clusterScope.Vnet().ResourceGroup,
-				CIDR:          clusterScope.Vnet().CidrBlock,
+				CIDRs:         []string{clusterScope.Vnet().CidrBlock},
 			}
 
 			err = s.Reconcile(context.TODO(), vnetSpec)
@@ -258,7 +258,7 @@ func TestDeleteVnet(t *testing.T) {
 			vnetSpec := &Spec{
 				Name:          clusterScope.Vnet().Name,
 				ResourceGroup: clusterScope.Vnet().ResourceGroup,
-				CIDR:          clusterScope.Vnet().CidrBlock,
+				CIDRs:         []string{clusterScope.Vnet().CidrBlock},
 			}
 
 			g.Expect(s.Delete(context.TODO(), vnetSpec)).To(Succeed())

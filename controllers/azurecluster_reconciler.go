@@ -83,8 +83,9 @@ func (r *azureClusterReconciler) Reconcile() error {
 	vnetSpec := &virtualnetworks.Spec{
 		ResourceGroup: r.scope.Vnet().ResourceGroup,
 		Name:          r.scope.Vnet().Name,
-		CIDR:          r.scope.Vnet().CidrBlock,
+		CIDRs:         []string{r.scope.Vnet().CidrBlock, r.scope.Vnet().IPv6CidrBlock},
 	}
+
 	if err := r.vnetSvc.Reconcile(r.scope.Context, vnetSpec); err != nil {
 		return errors.Wrapf(err, "failed to reconcile virtual network for cluster %s", r.scope.Name())
 	}
@@ -109,12 +110,13 @@ func (r *azureClusterReconciler) Reconcile() error {
 		Name: r.scope.NodeSubnet().RouteTable.Name,
 	}
 	if err := r.routeTableSvc.Reconcile(r.scope.Context, rtSpec); err != nil {
+
 		return errors.Wrapf(err, "failed to reconcile route table %s for cluster %s", r.scope.NodeSubnet().RouteTable.Name, r.scope.Name())
 	}
 
 	subnetSpec := &subnets.Spec{
 		Name:                r.scope.ControlPlaneSubnet().Name,
-		CIDR:                r.scope.ControlPlaneSubnet().CidrBlock,
+		CIDRs:               []string{r.scope.ControlPlaneSubnet().CidrBlock, r.scope.ControlPlaneSubnet().IPv6CidrBlock},
 		VnetName:            r.scope.Vnet().Name,
 		SecurityGroupName:   r.scope.ControlPlaneSubnet().SecurityGroup.Name,
 		Role:                r.scope.ControlPlaneSubnet().Role,
@@ -127,7 +129,7 @@ func (r *azureClusterReconciler) Reconcile() error {
 
 	subnetSpec = &subnets.Spec{
 		Name:              r.scope.NodeSubnet().Name,
-		CIDR:              r.scope.NodeSubnet().CidrBlock,
+		CIDRs:             []string{r.scope.NodeSubnet().CidrBlock, r.scope.NodeSubnet().IPv6CidrBlock},
 		VnetName:          r.scope.Vnet().Name,
 		SecurityGroupName: r.scope.NodeSubnet().SecurityGroup.Name,
 		RouteTableName:    r.scope.NodeSubnet().RouteTable.Name,

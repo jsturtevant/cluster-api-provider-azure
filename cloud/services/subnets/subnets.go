@@ -32,7 +32,7 @@ import (
 // Spec input specification for Get/CreateOrUpdate/Delete calls
 type Spec struct {
 	Name                string
-	CIDR                string
+	CIDRs               []string
 	VnetName            string
 	RouteTableName      string
 	SecurityGroupName   string
@@ -97,7 +97,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 
 	subnetProperties := network.SubnetPropertiesFormat{
-		AddressPrefix: to.StringPtr(subnetSpec.CIDR),
+		AddressPrefixes: &subnetSpec.CIDRs,
 	}
 	if subnetSpec.RouteTableName != "" {
 		klog.V(2).Infof("getting route table %s", subnetSpec.RouteTableName)

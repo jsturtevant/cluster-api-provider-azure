@@ -471,6 +471,10 @@ spec:
                     items:
                       description: SubnetSpec configures an Azure subnet.
                       properties:
+                        IPv6CidrBlock:
+                          description: Ipv6CidrBlock is the cidr block if IPv6 is
+                            is enabled
+                          type: string
                         cidrBlock:
                           description: CidrBlock is the CIDR block to be used when
                             the provider creates a managed Vnet.
@@ -568,6 +572,13 @@ spec:
                         description: CidrBlock is the CIDR block to be used when the
                           provider creates a managed virtual network.
                         type: string
+                      iPv6CidrBlock:
+                        description: Ipv6CidrBlock is the cidr block if IPv6 is is
+                          enabled
+                        type: string
+                      iPv6Enabled:
+                        description: EnableIPv6 turns IPv6 on
+                        type: boolean
                       id:
                         description: ID is the identifier of the virtual network this
                           provider should use to create resources.
