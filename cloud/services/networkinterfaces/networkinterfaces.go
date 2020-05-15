@@ -38,6 +38,7 @@ type Spec struct {
 	InternalLoadBalancerName string
 	PublicIPName             string
 	AcceleratedNetworking    *bool
+	IpV6Enabled              bool
 }
 
 // Get provides information about a network interface.
@@ -136,21 +137,37 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		nicSpec.AcceleratedNetworking = to.BoolPtr(accelNet)
 	}
 
+	ipConfigurations := []network.InterfaceIPConfiguration{
+		{
+			Name:                                     to.StringPtr("pipConfig"),
+			InterfaceIPConfigurationPropertiesFormat: nicConfig,
+		},
+	}
+
+	if nicSpec.IpV6Enabled {
+		ipv6Config := network.InterfaceIPConfiguration{
+			Name: to.StringPtr("ipConfigv6"),
+			InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{
+				PrivateIPAddressVersion: "IPv6",
+				Primary:                 to.BoolPtr(false),
+				Subnet:                  &network.Subnet{ID: subnet.ID},
+			},
+		}
+
+		ipConfigurations = append(ipConfigurations, ipv6Config)
+	}
+
 	err = s.Client.CreateOrUpdate(ctx,
 		s.Scope.ResourceGroup(),
 		nicSpec.Name,
 		network.Interface{
 			Location: to.StringPtr(s.Scope.Location()),
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
-				IPConfigurations: &[]network.InterfaceIPConfiguration{
-					{
-						Name:                                     to.StringPtr("pipConfig"),
-						InterfaceIPConfigurationPropertiesFormat: nicConfig,
-					},
-				},
 				EnableAcceleratedNetworking: nicSpec.AcceleratedNetworking,
+				IPConfigurations:            &ipConfigurations,
 			},
-		})
+		},
+	)
 
 	if err != nil {
 		return errors.Wrapf(err, "failed to create network interface %s in resource group %s", nicSpec.Name, s.Scope.ResourceGroup())

@@ -196,8 +196,9 @@ func (s *azureMachineService) getVirtualMachineZone() (string, error) {
 
 func (s *azureMachineService) reconcileNetworkInterface(nicName string) error {
 	networkInterfaceSpec := &networkinterfaces.Spec{
-		Name:     nicName,
-		VnetName: s.clusterScope.Vnet().Name,
+		Name:        nicName,
+		VnetName:    s.clusterScope.Vnet().Name,
+		IpV6Enabled: s.clusterScope.IsIPV6Enabled(),
 	}
 
 	if s.machineScope.AzureMachine.Spec.AllocatePublicIP == true {
