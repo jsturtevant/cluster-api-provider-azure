@@ -151,19 +151,44 @@ func (r *azureClusterReconciler) Reconcile() error {
 	}
 
 	publicIPSpec := &publicips.Spec{
-		Name:    r.scope.Network().APIServerIP.Name,
-		DNSName: r.scope.Network().APIServerIP.DNSName,
+		Name:           r.scope.Network().APIServerIP.Name,
+		DNSName:        r.scope.Network().APIServerIP.DNSName,
+		AddressVersion: 4,
 	}
 	if err := r.publicIPSvc.Reconcile(r.scope.Context, publicIPSpec); err != nil {
 		return errors.Wrapf(err, "failed to reconcile control plane public ip for cluster %s", r.scope.Name())
 	}
 
 	publicLBSpec := &publicloadbalancers.Spec{
-		Name:         azure.GeneratePublicLBName(r.scope.Name()),
+		Name:         azure.GeneratePublicLBName("control-plane"),
 		PublicIPName: r.scope.Network().APIServerIP.Name,
+		IsAPIServer:  true,
 	}
 	if err := r.publicLBSvc.Reconcile(r.scope.Context, publicLBSpec); err != nil {
 		return errors.Wrapf(err, "failed to reconcile control plane public load balancer for cluster %s", r.scope.Name())
+	}
+
+	// If ipv6 is enabled then a load balancer needs to be created for outbound traffic to work
+	if r.scope.IsIPV6Enabled() {
+		h := fnv.New32a()
+		h.Write([]byte(fmt.Sprintf("%s/%s/%s", r.scope.SubscriptionID, r.scope.ResourceGroup(), r.scope.Name())))
+		ipname := azure.GeneratePublicIPName("cluster", fmt.Sprintf("%x", h.Sum32()))
+
+		clusteripv4 := &publicips.Spec{
+			Name:           ipname,
+			AddressVersion: 4,
+		}
+		if err := r.publicIPSvc.Reconcile(r.scope.Context, clusteripv4); err != nil {
+			return errors.Wrapf(err, "failed to reconcile control plane public ip for cluster %s", r.scope.Name())
+		}
+
+		clusterLBSpec := &publicloadbalancers.Spec{
+			Name:         azure.GeneratePublicLBName("cluster"),
+			PublicIPName: ipname,
+		}
+		if err := r.publicLBSvc.Reconcile(r.scope.Context, clusterLBSpec); err != nil {
+			return errors.Wrapf(err, "failed to reconcile control plane public load balancer for cluster %s", r.scope.Name())
+		}
 	}
 
 	return nil

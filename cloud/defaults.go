@@ -81,8 +81,8 @@ func GenerateInternalLBName(clusterName string) string {
 }
 
 // GeneratePublicLBName generates a public load balancer name, based on the cluster name.
-func GeneratePublicLBName(clusterName string) string {
-	return fmt.Sprintf("%s-%s", clusterName, "public-lb")
+func GeneratePublicLBName(prefix string) string {
+	return fmt.Sprintf("%s-%s", prefix, "public-lb")
 }
 
 // GeneratePublicIPName generates a public IP name, based on the cluster name and a hash.
