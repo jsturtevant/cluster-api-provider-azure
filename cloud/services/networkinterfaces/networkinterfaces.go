@@ -144,7 +144,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
-	if nicSpec.IpV6Enabled {
+	if nicSpec.IPV6Enabled {
 		ipv6Config := network.InterfaceIPConfiguration{
 			Name: to.StringPtr("ipConfigv6"),
 			InterfaceIPConfigurationPropertiesFormat: &network.InterfaceIPConfigurationPropertiesFormat{

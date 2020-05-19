@@ -198,7 +198,7 @@ func (s *azureMachineService) reconcileNetworkInterface(nicName string) error {
 	networkInterfaceSpec := &networkinterfaces.Spec{
 		Name:        nicName,
 		VnetName:    s.clusterScope.Vnet().Name,
-		IpV6Enabled: s.clusterScope.IsIPV6Enabled(),
+		IPV6Enabled: s.clusterScope.IsIPV6Enabled(),
 	}
 
 	if s.machineScope.AzureMachine.Spec.AllocatePublicIP == true {
@@ -210,10 +210,14 @@ func (s *azureMachineService) reconcileNetworkInterface(nicName string) error {
 	switch role := s.machineScope.Role(); role {
 	case infrav1.Node:
 		networkInterfaceSpec.SubnetName = s.clusterScope.NodeSubnet().Name
+
+		if s.clusterScope.IsIPV6Enabled() {
+			networkInterfaceSpec.PublicLoadBalancerName = azure.GeneratePublicLBName("cluster")
+		}
 	case infrav1.ControlPlane:
 		networkInterfaceSpec.SubnetName = s.clusterScope.ControlPlaneSubnet().Name
-		networkInterfaceSpec.PublicLoadBalancerName = azure.GeneratePublicLBName(s.clusterScope.Name())
-		networkInterfaceSpec.InternalLoadBalancerName = azure.GenerateInternalLBName(s.clusterScope.Name())
+		networkInterfaceSpec.PublicLoadBalancerName = azure.GeneratePublicLBName("control-plane")
+		networkInterfaceSpec.InternalLoadBalancerName = azure.GenerateInternalLBName("control-plane")
 	default:
 		return errors.Errorf("unknown value %s for label `set` on machine %s, skipping machine creation", role, s.machineScope.Name())
 	}

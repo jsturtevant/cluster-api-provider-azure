@@ -140,7 +140,7 @@ func (r *azureClusterReconciler) Reconcile() error {
 	}
 
 	internalLBSpec := &internalloadbalancers.Spec{
-		Name:       azure.GenerateInternalLBName(r.scope.Name()),
+		Name:       azure.GenerateInternalLBName("control-plane"),
 		SubnetName: r.scope.ControlPlaneSubnet().Name,
 		SubnetCidr: r.scope.ControlPlaneSubnet().CidrBlock,
 		VnetName:   r.scope.Vnet().Name,
