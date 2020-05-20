@@ -141,10 +141,10 @@ func (r *azureClusterReconciler) Reconcile() error {
 
 	internalLBSpec := &internalloadbalancers.Spec{
 		Name:       azure.GenerateInternalLBName("control-plane"),
-		SubnetName: r.scope.ControlPlaneSubnet().Name,
-		SubnetCidr: r.scope.ControlPlaneSubnet().CidrBlock,
+		SubnetName: cpSubnet.Name,
+		SubnetCidr: cpSubnet.CidrBlock,
 		VnetName:   r.scope.Vnet().Name,
-		IPAddress:  r.scope.ControlPlaneSubnet().InternalLBIPAddress,
+		IPAddress:  cpSubnet.InternalLBIPAddress,
 	}
 	if err := r.internalLBSvc.Reconcile(r.scope.Context, internalLBSpec); err != nil {
 		return errors.Wrapf(err, "failed to reconcile control plane internal load balancer for cluster %s", r.scope.Name())

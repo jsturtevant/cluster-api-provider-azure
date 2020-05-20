@@ -65,12 +65,28 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.SubnetSpe
 			ID:   to.String(subnet.SubnetPropertiesFormat.RouteTable.ID),
 		}
 	}
+
+	IPV4Cidr := to.String(subnet.SubnetPropertiesFormat.AddressPrefix)
+	var IPV6Cidr string
+	if subnet.SubnetPropertiesFormat != nil && subnet.SubnetPropertiesFormat.AddressPrefixes != nil {
+		addresses := to.StringSlice(subnet.SubnetPropertiesFormat.AddressPrefixes)
+
+		if len(addresses) > 0 {
+			IPV4Cidr = addresses[0]
+		}
+
+		if len(addresses) > 1 {
+			IPV6Cidr = addresses[1]
+		}
+	}
+
 	return &infrav1.SubnetSpec{
 		Role:                subnetSpec.Role,
 		InternalLBIPAddress: subnetSpec.InternalLBIPAddress,
 		Name:                to.String(subnet.Name),
 		ID:                  to.String(subnet.ID),
-		CidrBlock:           to.String(subnet.SubnetPropertiesFormat.AddressPrefix),
+		CidrBlock:           IPV4Cidr,
+		IPv6CidrBlock:       IPV6Cidr,
 		SecurityGroup:       sg,
 		RouteTable:          rt,
 	}, nil
