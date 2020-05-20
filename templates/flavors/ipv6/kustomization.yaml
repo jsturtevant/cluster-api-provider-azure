@@ -1,0 +1,5 @@
+resources:
+  - ../base
+  - machine-deployment.yaml
+patchesStrategicMerge:
+  - patches/ipv6.yaml
