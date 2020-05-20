@@ -68,7 +68,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		}
 	} else if azure.ResourceNotFound(err) {
 		klog.V(2).Infof("internalLB %s not found in RG %s", internalLBSpec.Name, s.Scope.ResourceGroup())
-		privateIP, err = s.getAvailablePrivateIP(ctx, s.Scope.Vnet().ResourceGroup, internalLBSpec.VnetName, internalLBSpec.SubnetCidr, internalLBSpec.IPAddress)
+		privateIP, err = s.getAvailablePrivateIP(ctx, s.Scope.Vnet().ResourceGroup, internalLBSpec.VnetName, internalLBSpec.SubnetCidr, internalLBSpec.IPAddress, s.Scope.IsIPV6Enabled())
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func (s *Service) Delete(ctx context.Context, spec interface{}) error {
 
 // getAvailablePrivateIP checks if the desired private IP address is available in a virtual network.
 // If the IP address is taken or empty, it will make an attempt to find an available IP in the same subnet
-func (s *Service) getAvailablePrivateIP(ctx context.Context, resourceGroup, vnetName, subnetCIDR, PreferredIPAddress string) (string, error) {
+func (s *Service) getAvailablePrivateIP(ctx context.Context, resourceGroup, vnetName, subnetCIDR, PreferredIPAddress string, isIPV6 bool) (string, error) {
 	ip := PreferredIPAddress
 	if ip == "" {
 		ip = azure.DefaultInternalLBIPAddress
@@ -183,15 +183,20 @@ func (s *Service) getAvailablePrivateIP(ctx context.Context, resourceGroup, vnet
 			ip = subnetCIDR[0:7] + "0"
 		}
 	}
-	result, err := s.VirtualNetworksClient.CheckIPAddressAvailability(ctx, resourceGroup, vnetName, ip)
-	if err != nil {
-		return "", errors.Wrap(err, "failed to check IP availability")
-	}
-	if !to.Bool(result.Available) {
-		if len(to.StringSlice(result.AvailableIPAddresses)) == 0 {
-			return "", errors.Errorf("IP %s is not available in vnet %s and there were no other available IPs found", ip, vnetName)
+
+	if !isIPV6 {
+		// check ip address avaliablity does not work if ipv6 is enabled on the vnet - 500 is returned.
+		result, err := s.VirtualNetworksClient.CheckIPAddressAvailability(ctx, resourceGroup, vnetName, ip)
+		if err != nil {
+			return "", errors.Wrap(err, "failed to check IP availability")
 		}
-		ip = to.StringSlice(result.AvailableIPAddresses)[0]
+		if !to.Bool(result.Available) {
+			if len(to.StringSlice(result.AvailableIPAddresses)) == 0 {
+				return "", errors.Errorf("IP %s is not available in vnet %s and there were no other available IPs found", ip, vnetName)
+			}
+			ip = to.StringSlice(result.AvailableIPAddresses)[0]
+		}
 	}
+
 	return ip, nil
 }
