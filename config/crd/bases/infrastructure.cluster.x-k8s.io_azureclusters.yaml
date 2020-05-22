@@ -570,7 +570,8 @@ spec:
                     properties:
                       cidrBlock:
                         description: CidrBlock is the CIDR block to be used when the
-                          provider creates a managed virtual network.
+                          provider creates a managed virtual network. TODO should
+                          just make this a list as is done in https://docs.microsoft.com/en-us/cli/azure/network/vnet?view=azure-cli-latest#az-network-vnet-create
                         type: string
                       iPv6CidrBlock:
                         description: Ipv6CidrBlock is the cidr block if IPv6 is is
