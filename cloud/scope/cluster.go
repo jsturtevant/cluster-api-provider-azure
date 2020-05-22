@@ -96,10 +96,7 @@ func (s *ClusterScope) Vnet() *infrav1.VnetSpec {
 
 // IsIPV6Enabled Returns if IpV6 is enabled
 func (s *ClusterScope) IsIPV6Enabled() bool {
-	if s.AzureCluster.Spec.NetworkSpec.Vnet.IPv6CidrBlock != "" {
-		return true
-	}
-	return false
+	return s.AzureCluster.Spec.NetworkSpec.Vnet.IPv6Enabled
 }
 
 // Subnets returns the cluster subnets.

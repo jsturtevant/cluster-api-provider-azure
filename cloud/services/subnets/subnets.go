@@ -71,6 +71,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.SubnetSpe
 	if subnet.SubnetPropertiesFormat != nil && subnet.SubnetPropertiesFormat.AddressPrefixes != nil {
 		addresses := to.StringSlice(subnet.SubnetPropertiesFormat.AddressPrefixes)
 
+		// assumption that the second adress is the ipv6 address. This would be unnessary if subnet spec was array
 		if len(addresses) > 0 {
 			IPV4Cidr = addresses[0]
 		}

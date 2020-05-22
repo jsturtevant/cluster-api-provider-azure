@@ -73,7 +73,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	}
 	klog.V(2).Infof("successfully got public ip %s", publicLBSpec.PublicIPName)
 
-	lbStruct := network.LoadBalancer{
+	lb := network.LoadBalancer{
 		Tags: converters.TagsToMap(infrav1.Build(infrav1.BuildParams{
 			ClusterName: s.Scope.Name(),
 			Lifecycle:   infrav1.ResourceLifecycleOwned,
@@ -84,25 +84,9 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		Location: to.StringPtr(s.Scope.Location()),
 	}
 
-	if !publicLBSpec.IsAPIServer {
-		lbStruct.LoadBalancerPropertiesFormat = &network.LoadBalancerPropertiesFormat{
-			FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
-				{
-					Name: &frontEndIPConfigName,
-					FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
-						PrivateIPAllocationMethod: network.Dynamic,
-						PublicIPAddress:           &publicIP,
-					},
-				},
-			},
-			BackendAddressPools: &[]network.BackendAddressPool{
-				{
-					Name: &backEndAddressPoolName,
-				},
-			},
-		}
-	} else {
-		lbStruct.LoadBalancerPropertiesFormat = &network.LoadBalancerPropertiesFormat{
+	if publicLBSpec.IsAPIServer {
+		// api server has more requirements.  load balancing rules for non api server will be set later.
+		lb.LoadBalancerPropertiesFormat = &network.LoadBalancerPropertiesFormat{
 			FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
 				{
 					Name: &frontEndIPConfigName,
@@ -171,10 +155,28 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 				},
 			},
 		}
+	} else {
+		// only required to set up backend pools for now
+		lb.LoadBalancerPropertiesFormat = &network.LoadBalancerPropertiesFormat{
+			FrontendIPConfigurations: &[]network.FrontendIPConfiguration{
+				{
+					Name: &frontEndIPConfigName,
+					FrontendIPConfigurationPropertiesFormat: &network.FrontendIPConfigurationPropertiesFormat{
+						PrivateIPAllocationMethod: network.Dynamic,
+						PublicIPAddress:           &publicIP,
+					},
+				},
+			},
+			BackendAddressPools: &[]network.BackendAddressPool{
+				{
+					Name: &backEndAddressPoolName,
+				},
+			},
+		}
 	}
 
 	// https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones#zone-redundant-by-default
-	err = s.Client.CreateOrUpdate(ctx, s.Scope.ResourceGroup(), lbName, lbStruct)
+	err = s.Client.CreateOrUpdate(ctx, s.Scope.ResourceGroup(), lbName, lb)
 
 	if err != nil {
 		return errors.Wrap(err, "cannot create public load balancer")

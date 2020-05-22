@@ -29,9 +29,9 @@ import (
 
 // Spec specification for public ip
 type Spec struct {
-	Name           string
-	DNSName        string
-	AddressVersion int
+	Name    string
+	DNSName string
+	IsIPV6  bool
 }
 
 // Get provides information about a public ip.
@@ -58,15 +58,9 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 	ipName := publicIPSpec.Name
 	klog.V(2).Infof("creating public ip %s", ipName)
 
-	var addressVersion network.IPVersion
-	switch publicIPSpec.AddressVersion {
-	case 4:
-		addressVersion = network.IPv4
-	case 6:
+	addressVersion := network.IPv4
+	if publicIPSpec.IsIPV6 {
 		addressVersion = network.IPv6
-	default:
-		klog.Warning("defaulting to public ip with network address type Ipv4 as network version was invalid")
-		addressVersion = network.IPv4
 	}
 
 	// https://docs.microsoft.com/en-us/azure/load-balancer/load-balancer-standard-availability-zones#zone-redundant-by-default
