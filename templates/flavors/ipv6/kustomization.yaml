@@ -5,3 +5,4 @@ resources:
 patchesStrategicMerge:
   - patches/ipv6.yaml
   - azure-cluster.yaml
+  - control-plane-adm-config.yaml

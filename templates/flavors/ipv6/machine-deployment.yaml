@@ -51,6 +51,17 @@ spec:
           kubeletExtraArgs:
             cloud-provider: azure
             cloud-config: /etc/kubernetes/azure.json
+            node-ip: "::"
+      clusterConfiguration:
+        apiServer:
+          extraArgs:
+            bind-address: "::"
+        controllerManager:
+          extraArgs:
+            bind-address: "::"
+        scheduler:
+          extraArgs:
+            bind-address: "::"
       files:
         - path: /etc/kubernetes/azure.json
           owner: "root:root"

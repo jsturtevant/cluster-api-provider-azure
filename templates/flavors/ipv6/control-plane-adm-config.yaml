@@ -1,0 +1,31 @@
+apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
+kind: KubeadmControlPlane
+metadata:
+  name: "${CLUSTER_NAME}-control-plane"
+spec:
+  kubeadmConfigSpec:
+    useExperimentalRetryJoin: true
+    joinConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data["local_hostname"] }}'
+        kubeletExtraArgs:
+          cloud-provider: azure
+          cloud-config: /etc/kubernetes/azure.json
+          node-ip: "::"
+    clusterConfiguration:
+      apiServer:
+        timeoutForControlPlane: 20m
+        extraArgs:
+          cloud-provider: azure
+          cloud-config: /etc/kubernetes/azure.json
+          bind-address: "::"
+      controllerManager:
+        extraArgs:
+          cloud-provider: azure
+          cloud-config: /etc/kubernetes/azure.json
+          allocate-node-cidrs: "false"
+          bind-address: "::"
+      scheduler:
+        extraArgs:
+          bind-address: "::"
+    

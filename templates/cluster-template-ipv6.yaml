@@ -45,6 +45,7 @@ spec:
     clusterConfiguration:
       apiServer:
         extraArgs:
+          bind-address: '::'
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
         extraVolumes:
@@ -56,6 +57,7 @@ spec:
       controllerManager:
         extraArgs:
           allocate-node-cidrs: "false"
+          bind-address: '::'
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
         extraVolumes:
@@ -63,6 +65,9 @@ spec:
           mountPath: /etc/kubernetes/azure.json
           name: cloud-config
           readOnly: true
+      scheduler:
+        extraArgs:
+          bind-address: '::'
     files:
     - content: |
         {
@@ -99,6 +104,7 @@ spec:
         kubeletExtraArgs:
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
+          node-ip: '::'
         name: '{{ ds.meta_data["local_hostname"] }}'
     useExperimentalRetryJoin: true
   replicas: ${CONTROL_PLANE_MACHINE_COUNT}
@@ -170,6 +176,16 @@ metadata:
 spec:
   template:
     spec:
+      clusterConfiguration:
+        apiServer:
+          extraArgs:
+            bind-address: '::'
+        controllerManager:
+          extraArgs:
+            bind-address: '::'
+        scheduler:
+          extraArgs:
+            bind-address: '::'
       files:
       - content: |
           {
@@ -199,4 +215,5 @@ spec:
           kubeletExtraArgs:
             cloud-config: /etc/kubernetes/azure.json
             cloud-provider: azure
+            node-ip: '::'
           name: '{{ ds.meta_data["local_hostname"] }}'
