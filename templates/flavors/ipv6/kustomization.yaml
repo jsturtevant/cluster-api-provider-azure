@@ -4,3 +4,4 @@ resources:
   - machine-deployment.yaml
 patchesStrategicMerge:
   - patches/ipv6.yaml
+  - azure-cluster.yaml

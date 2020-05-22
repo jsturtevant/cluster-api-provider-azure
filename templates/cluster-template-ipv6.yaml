@@ -26,6 +26,7 @@ spec:
   location: ${AZURE_LOCATION}
   networkSpec:
     vnet:
+      iPv6Enabled: true
       name: ${AZURE_VNET_NAME}
   resourceGroup: ${AZURE_RESOURCE_GROUP}
   subscriptionID: ${AZURE_SUBSCRIPTION_ID}

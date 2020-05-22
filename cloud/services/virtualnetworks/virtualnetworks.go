@@ -50,6 +50,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.VnetSpec,
 	}
 	cidr := ""
 	cidrIpv6 := ""
+	isIpv6Enabled := false
 	if vnet.VirtualNetworkPropertiesFormat != nil && vnet.VirtualNetworkPropertiesFormat.AddressSpace != nil {
 		prefixes := to.StringSlice(vnet.VirtualNetworkPropertiesFormat.AddressSpace.AddressPrefixes)
 		if prefixes != nil && len(prefixes) > 0 {
@@ -58,6 +59,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.VnetSpec,
 
 		if prefixes != nil && len(prefixes) > 1 {
 			cidrIpv6 = prefixes[1]
+			isIpv6Enabled = true
 		}
 	}
 	return &infrav1.VnetSpec{
@@ -66,6 +68,7 @@ func (s *Service) Get(ctx context.Context, spec interface{}) (*infrav1.VnetSpec,
 		Name:          to.String(vnet.Name),
 		CidrBlock:     cidr,
 		IPv6CidrBlock: cidrIpv6,
+		IPv6Enabled:   isIpv6Enabled,
 		Tags:          converters.MapToTags(vnet.Tags),
 	}, nil
 }
