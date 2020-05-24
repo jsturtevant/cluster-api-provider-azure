@@ -5,6 +5,13 @@ metadata:
 spec:
   kubeadmConfigSpec:
     useExperimentalRetryJoin: true
+    initConfiguration:
+      nodeRegistration:
+        name: '{{ ds.meta_data["local_hostname"] }}'
+        kubeletExtraArgs:
+          cloud-provider: azure
+          cloud-config: /etc/kubernetes/azure.json
+          node-ip: "::"
     joinConfiguration:
       nodeRegistration:
         name: '{{ ds.meta_data["local_hostname"] }}'
