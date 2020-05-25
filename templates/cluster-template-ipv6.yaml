@@ -7,7 +7,10 @@ spec:
   clusterNetwork:
     pods:
       cidrBlocks:
-      - 2001:1234:5678:9abd::/64
+      - fc00::/48
+    services:
+      cidrBlocks:
+      - fd00::/108
   controlPlaneRef:
     apiVersion: controlplane.cluster.x-k8s.io/v1alpha3
     kind: KubeadmControlPlane
@@ -94,16 +97,26 @@ spec:
       path: /etc/kubernetes/azure.json
       permissions: "0644"
     initConfiguration:
+      localAPIEndpoint:
+        advertiseAddress: '::'
+        bindPort: 6443
       nodeRegistration:
         kubeletExtraArgs:
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
+          cluster-dns: '[fd00::10]'
+          node-ip: '::'
         name: '{{ ds.meta_data["local_hostname"] }}'
     joinConfiguration:
+      controlPlane:
+        localAPIEndpoint:
+          advertiseAddress: '::'
+          bindPort: 6443
       nodeRegistration:
         kubeletExtraArgs:
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
+          cluster-dns: '[fd00::10]'
           node-ip: '::'
         name: '{{ ds.meta_data["local_hostname"] }}'
     useExperimentalRetryJoin: true
@@ -215,5 +228,6 @@ spec:
           kubeletExtraArgs:
             cloud-config: /etc/kubernetes/azure.json
             cloud-provider: azure
+            cluster-dns: '[fd00::10]'
             node-ip: '::'
           name: '{{ ds.meta_data["local_hostname"] }}'

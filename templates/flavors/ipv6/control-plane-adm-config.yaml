@@ -12,6 +12,10 @@ spec:
           cloud-provider: azure
           cloud-config: /etc/kubernetes/azure.json
           node-ip: "::"
+          cluster-dns: "[fd00::10]"
+      localAPIEndpoint:
+        advertiseAddress: "::"
+        bindPort: 6443
     joinConfiguration:
       nodeRegistration:
         name: '{{ ds.meta_data["local_hostname"] }}'
@@ -19,6 +23,11 @@ spec:
           cloud-provider: azure
           cloud-config: /etc/kubernetes/azure.json
           node-ip: "::"
+          cluster-dns: "[fd00::10]"
+      controlPlane:
+        localAPIEndpoint:
+          advertiseAddress: "::"
+          bindPort: 6443
     clusterConfiguration:
       apiServer:
         timeoutForControlPlane: 20m

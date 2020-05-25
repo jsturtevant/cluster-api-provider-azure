@@ -52,6 +52,7 @@ spec:
             cloud-provider: azure
             cloud-config: /etc/kubernetes/azure.json
             node-ip: "::"
+            cluster-dns: "[fd00::10]"
       clusterConfiguration:
         apiServer:
           extraArgs:
