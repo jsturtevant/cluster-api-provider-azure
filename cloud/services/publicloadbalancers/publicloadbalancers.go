@@ -172,6 +172,23 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 					Name: &backEndAddressPoolName,
 				},
 			},
+			OutboundRules: &[]network.OutboundRule{
+				{
+					Name: to.StringPtr("OutboundNATAllProtocols"),
+					OutboundRulePropertiesFormat: &network.OutboundRulePropertiesFormat{
+						Protocol:             network.LoadBalancerOutboundRuleProtocolAll,
+						IdleTimeoutInMinutes: to.Int32Ptr(4),
+						FrontendIPConfigurations: &[]network.SubResource{
+							{
+								ID: to.StringPtr(fmt.Sprintf("/%s/%s/frontendIPConfigurations/%s", idPrefix, lbName, frontEndIPConfigName)),
+							},
+						},
+						BackendAddressPool: &network.SubResource{
+							ID: to.StringPtr(fmt.Sprintf("/%s/%s/backendAddressPools/%s", idPrefix, lbName, backEndAddressPoolName)),
+						},
+					},
+				},
+			},
 		}
 	}
 
