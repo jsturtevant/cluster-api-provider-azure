@@ -371,6 +371,8 @@ create-management-cluster: $(KUSTOMIZE) $(ENVSUBST)
 	sleep 10
 	@echo 'Set kubectl context to the kind management cluster by running "kubectl config set-context kind-capz"'
 
+IPV6 ?= false
+
 .PHONY: create-workload-cluster
 create-workload-cluster: $(ENVSUBST)
 	# Create workload Cluster.
@@ -383,7 +385,13 @@ create-workload-cluster: $(ENVSUBST)
 	timeout --foreground 600 bash -c "while ! kubectl --kubeconfig=./kubeconfig get nodes | grep master; do sleep 1; done"
 
 	# Deploy calico
-	kubectl --kubeconfig=./kubeconfig apply -f templates/addons/calico.yaml
+	@if [[ "${IPV6}" == "true" ]]; then \
+		echo 'deploying ivp6 configuration'; \
+		kubectl --kubeconfig=./kubeconfig apply -f templates/addons/calico-ipv6.yaml; \
+	else \
+		kubectl --kubeconfig=./kubeconfig apply -f templates/addons/calico.yaml; \
+	fi
+
 
 	@echo 'run "kubectl --kubeconfig=./kubeconfig ..." to work with the new target cluster'
 
