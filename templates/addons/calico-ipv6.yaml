@@ -10,7 +10,6 @@ data:
   # Typha is disabled.
   typha_service_name: "none"
   # Configure the backend to use.
-  calico_backend: "vxlan"
 
   # Configure the MTU to use
   veth_mtu: "1440"
@@ -618,9 +617,6 @@ spec:
               value: "none"
             - name: CALICO_ROUTER_ID
               value: "hash"
-            # Enable VXLAN	
-            - name: CALICO_IPV4POOL_VXLAN
-              value: "Always"
             # The default IPv6 pool to create on startup if none exists. Pod IPs will be
             # chosen from this range. Changing this value after installation will have
             # no effect. This should fall within `--cluster-cidr`.
