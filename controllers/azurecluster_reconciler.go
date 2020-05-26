@@ -197,8 +197,11 @@ func (r *azureClusterReconciler) Reconcile() error {
 			return errors.Wrapf(err, "failed to reconcile control plane public ip for cluster %s", r.scope.Name())
 		}
 
+		// This must be the name of the cluster for Controller manager to pick up correct load balancer
+		// when apply service lb rules:
+		// https://github.com/kubernetes/kubernetes/blob/3a95b1130ad6ea0a5b0aa6b8e6c1b164c075ffd1/staging/src/k8s.io/legacy-cloud-providers/azure/azure_standard.go#L148
 		clusterLBSpec := &publicloadbalancers.Spec{
-			Name:         azure.GeneratePublicLBName("cluster"),
+			Name:         r.scope.Name(),
 			PublicIPName: ipname,
 		}
 		if err := r.publicLBSvc.Reconcile(r.scope.Context, clusterLBSpec); err != nil {

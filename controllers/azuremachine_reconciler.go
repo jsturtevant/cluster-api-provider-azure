@@ -212,7 +212,7 @@ func (s *azureMachineService) reconcileNetworkInterface(nicName string) error {
 		networkInterfaceSpec.SubnetName = s.clusterScope.NodeSubnet().Name
 
 		if s.clusterScope.IsIPV6Enabled() {
-			networkInterfaceSpec.PublicLoadBalancerName = azure.GeneratePublicLBName("cluster")
+			networkInterfaceSpec.PublicLoadBalancerName = s.clusterScope.Name()
 		}
 	case infrav1.ControlPlane:
 		networkInterfaceSpec.SubnetName = s.clusterScope.ControlPlaneSubnet().Name
