@@ -38,7 +38,7 @@ type Spec struct {
 	InternalLoadBalancerName string
 	PublicIPName             string
 	AcceleratedNetworking    *bool
-	IpV6Enabled              bool
+	IPV6Enabled              bool
 }
 
 // Get provides information about a network interface.

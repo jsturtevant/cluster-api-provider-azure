@@ -63,6 +63,7 @@ spec:
           bind-address: '::'
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
+          cluster-name: ${CLUSTER_NAME}
         extraVolumes:
         - hostPath: /etc/kubernetes/azure.json
           mountPath: /etc/kubernetes/azure.json
@@ -104,7 +105,7 @@ spec:
         kubeletExtraArgs:
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
-          cluster-dns: '[fd00::10]'
+          cluster-dns: fd00::10
           node-ip: '::'
         name: '{{ ds.meta_data["local_hostname"] }}'
     joinConfiguration:
@@ -116,7 +117,7 @@ spec:
         kubeletExtraArgs:
           cloud-config: /etc/kubernetes/azure.json
           cloud-provider: azure
-          cluster-dns: '[fd00::10]'
+          cluster-dns: fd00::10
           node-ip: '::'
         name: '{{ ds.meta_data["local_hostname"] }}'
     useExperimentalRetryJoin: true
