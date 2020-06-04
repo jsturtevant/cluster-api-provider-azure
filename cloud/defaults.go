@@ -32,15 +32,6 @@ const (
 	DefaultInternalLBIPAddress = "10.0.0.100"
 	// DefaultAzureDNSZone is the default provided azure dns zone
 	DefaultAzureDNSZone = "cloudapp.azure.com"
-)
-
-const (
-	// DefaultVnetIpv6CIDR is the ipv6 Vnet CIDR
-	DefaultVnetIpv6CIDR = "2001:1234:5678:9a00::/56"
-	// DefaultControlPlaneSubnetIpv6CIDR is the default Control Plane Subnet CIDR
-	DefaultControlPlaneSubnetIpv6CIDR = "2001:1234:5678:9abc::/64"
-	// DefaultNodeSubnetIpv6CIDR is the default Node Subnet CIDR
-	DefaultNodeSubnetIpv6CIDR = "2001:1234:5678:9abd::/64"
 	// DefaultInternalLBIpv6Address is the default internal load balancer ip address
 	DefaultInternalLBIpv6Address = "2001:1234:5678:9abc::100"
 )
