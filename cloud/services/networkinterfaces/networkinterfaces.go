@@ -144,6 +144,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 		},
 	}
 
+	enableIPForwarding := false
 	if nicSpec.IPV6Enabled {
 		ipv6Config := network.InterfaceIPConfiguration{
 			Name: to.StringPtr("ipConfigv6"),
@@ -154,6 +155,8 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			},
 		}
 
+		// This will need to configured for each CNI but for now set to true while using calico
+		enableIPForwarding = true
 		ipConfigurations = append(ipConfigurations, ipv6Config)
 	}
 
@@ -165,6 +168,7 @@ func (s *Service) Reconcile(ctx context.Context, spec interface{}) error {
 			InterfacePropertiesFormat: &network.InterfacePropertiesFormat{
 				EnableAcceleratedNetworking: nicSpec.AcceleratedNetworking,
 				IPConfigurations:            &ipConfigurations,
+				EnableIPForwarding:          to.BoolPtr(enableIPForwarding),
 			},
 		},
 	)
