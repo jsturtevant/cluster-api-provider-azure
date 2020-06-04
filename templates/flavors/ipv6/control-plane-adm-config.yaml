@@ -39,7 +39,10 @@ spec:
         extraArgs:
           cloud-provider: azure
           cloud-config: /etc/kubernetes/azure.json
-          allocate-node-cidrs: "false"
+          #required for ipv6 using calico
+          allocate-node-cidrs: "true"
+          cluster-cidr: "2001:1234:5678:9a40::/58"
+          configure-cloud-routes: true
           bind-address: "::"
       scheduler:
         extraArgs:
