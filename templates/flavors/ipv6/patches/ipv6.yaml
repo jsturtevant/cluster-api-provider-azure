@@ -6,7 +6,7 @@ metadata:
 spec:
   clusterNetwork:
     pods:
-      cidrBlocks: ["fc00::/48"]
+      cidrBlocks: ["2001:1234:5678:9abe::/64"]
     services:
       cidrBlocks: ["fd00::/108"]
     

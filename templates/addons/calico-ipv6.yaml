@@ -621,8 +621,9 @@ spec:
             # no effect. This should fall within `--cluster-cidr`.
             # - name: CALICO_IPV4POOL_CIDR
             #   value: "192.168.0.0/16"
+            # https://docs.projectcalico.org/reference/public-cloud/azure#azure-user-defined-routes
             - name: CALICO_IPV6POOL_CIDR
-              value: "fc00::/48"
+              value: "2001:1234:5678:9abe::/64"
             - name: IP6
               value: "autodetect"
             # Disable file logging so `kubectl logs` works.
