@@ -28,7 +28,7 @@ data:
           "mtu": 1500,
           "ipam": {
               "type": "host-local",
-              "subnet": "usePodCidr",
+              "subnet": "usePodCidr"
           },
           "policy": {
               "type": "k8s"
