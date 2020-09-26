@@ -174,6 +174,15 @@ func loadE2EConfig(configPath string) *clusterctl.E2EConfig {
 	Expect(config.Variables).To(HaveKey(CNIPathIPv6), "Missing %s variable in the config", CNIPathIPv6)
 	clusterctl.SetCNIEnvVar(config.GetVariable(CNIPathIPv6), CNIResourcesIPv6)
 
+	// Although this is called SetCNIEnv it will set Windowskubeproxy resources in the CRS
+	// it will be called register in future: https://github.com/kubernetes-sigs/cluster-api/pull/3846/files
+	Expect(config.Variables).To(HaveKey(WindowsKubeProxyPath), "Missing %s variable in the config", CNIPathWindows)
+	clusterctl.SetCNIEnvVar(config.GetVariable(WindowsKubeProxyPath), WindowsKubeProxyResources)
+
+	// Read CNI_WINDOWS file and set CNI_RESOURCES_WINDOWS environmental variable
+	Expect(config.Variables).To(HaveKey(CNIPathWindows), "Missing %s variable in the config", CNIPathWindows)
+	clusterctl.SetCNIEnvVar(config.GetVariable(CNIPathWindows), CNIResourcesWindows)
+
 	return config
 }
 

@@ -260,6 +260,14 @@ func (m *MachineScope) AvailabilityZone() string {
 
 // Name returns the AzureMachine name.
 func (m *MachineScope) Name() string {
+	if m.AzureMachine.Spec.OSDisk.OSType == "Windows" && len(m.AzureMachine.Name) > 15 {
+		clustername := m.ClusterName()
+		if len(m.ClusterName()) > 5 {
+			clustername = clustername[0:5]
+		}
+
+		return "win-" + clustername + "-" + m.AzureMachine.Name[len(m.AzureMachine.Name)-5:]
+	}
 	return m.AzureMachine.Name
 }
 
