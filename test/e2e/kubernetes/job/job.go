@@ -44,6 +44,9 @@ func CreateCurlJob(name, endpoint string) *batchv1.Job {
 							},
 						},
 					},
+					NodeSelector: map[string]string{
+						"kubernetes.io/os": "linux",
+					},
 				},
 			},
 		},

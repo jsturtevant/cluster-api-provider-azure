@@ -23,10 +23,8 @@ import (
 	"fmt"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"io/ioutil"
 	k8snet "k8s.io/utils/net"
 	"net"
-	"regexp"
 	deploymentBuilder "sigs.k8s.io/cluster-api-provider-azure/test/e2e/kubernetes/deployment"
 	"sigs.k8s.io/cluster-api-provider-azure/test/e2e/kubernetes/job"
 
@@ -44,6 +42,7 @@ type AzureLBSpecInput struct {
 	ClusterName           string
 	SkipCleanup           bool
 	IPv6                  bool
+	Windows               bool
 }
 
 // AzureLBSpec implements a test that verifies Azure internal and external load balancers can
@@ -65,9 +64,15 @@ func AzureLBSpec(ctx context.Context, inputGetter func() AzureLBSpecInput) {
 	clientset = clusterProxy.GetClientSet()
 	Expect(clientset).NotTo(BeNil())
 
-	By("creating an Apache HTTP deployment")
+	By("creating an HTTP deployment")
 	webDeployment := deploymentBuilder.CreateDeployment("httpd", "web", corev1.NamespaceDefault)
-	webDeployment.AddContainerPort("httpd", "http", 80, corev1.ProtocolTCP)
+	webDeployment.AddContainerPort("http", "http", 80, corev1.ProtocolTCP)
+
+	if input.Windows {
+		webDeployment.SetWindowsImage("web", "mcr.microsoft.com/windows/servercore/iis")
+		webDeployment.AddWindowsSelectors()
+	}
+
 	deployment, err := webDeployment.Deploy(clientset)
 	Expect(err).NotTo(HaveOccurred())
 	deployInput := WaitForDeploymentsAvailableInput{
@@ -167,11 +172,8 @@ func AzureLBSpec(ctx context.Context, inputGetter func() AzureLBSpecInput) {
 			defer resp.Body.Close()
 		}
 		Expect(err).NotTo(HaveOccurred())
-		body, err := ioutil.ReadAll(resp.Body)
+		Expect(resp.StatusCode).To(Equal(200))
 		Expect(err).NotTo(HaveOccurred())
-		matched, err := regexp.MatchString("It works!", string(body))
-		Expect(err).NotTo(HaveOccurred())
-		Expect(matched).To(BeTrue())
 	}
 
 	if input.SkipCleanup {

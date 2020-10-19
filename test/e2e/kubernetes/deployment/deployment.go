@@ -79,6 +79,9 @@ func CreateDeployment(image, name, namespace string) *deploymentBuilder {
 								},
 							},
 						},
+						NodeSelector: map[string]string{
+							"kubernetes.io/os": "linux",
+						},
 					},
 				},
 			},
@@ -159,4 +162,38 @@ func (d *deploymentBuilder) GetService(ports []corev1.ServicePort, lbtype Loadba
 			},
 		},
 	}
+}
+
+func (d *deploymentBuilder) SetWindowsImage(name, image string) {
+	for i, c := range d.deployment.Spec.Template.Spec.Containers {
+		if c.Name == name {
+			c.Image = getWindowsImageSku(image)
+			d.deployment.Spec.Template.Spec.Containers[i] = c
+			log.Printf("Windows Image updated to/from: %s/%s\n", c.Image, d.deployment.Spec.Template.Spec.Containers[i].Name)
+		}
+	}
+
+	for _, c := range d.deployment.Spec.Template.Spec.Containers {
+		log.Printf("Image after updated to: %s\n", c.Image)
+	}
+}
+
+func (d *deploymentBuilder) AddWindowsSelectors() {
+	if d.deployment.Spec.Template.Spec.NodeSelector == nil {
+		d.deployment.Spec.Template.Spec.NodeSelector = map[string]string{}
+	}
+
+	d.deployment.Spec.Template.Spec.NodeSelector["kubernetes.io/os"] = "windows"
+}
+
+func getWindowsImageSku(image string) string {
+	windowsSku := "2019"
+	switch windowsSku {
+	case "2019":
+		log.Printf("found sku: %s\n", windowsSku)
+		return fmt.Sprintf("%s:windowsservercore-ltsc2019", image)
+	}
+
+	// Best effort
+	return "mcr.microsoft.com/windows/servercore/iis:windowsservercore-ltsc2019"
 }
