@@ -123,6 +123,9 @@ func (m *MachinePoolScope) ScaleSetSpec() azure.ScaleSetSpec {
 
 // Name returns the Azure Machine Pool Name.
 func (m *MachinePoolScope) Name() string {
+	if m.AzureMachinePool.Spec.Template.OSDisk.OSType == "Windows" && len(m.AzureMachinePool.Name) > 9 {
+		return "win" + m.AzureMachinePool.Name[len(m.AzureMachinePool.Name)-5:]
+	}
 	return m.AzureMachinePool.Name
 }
 
