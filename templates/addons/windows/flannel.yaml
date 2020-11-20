@@ -635,6 +635,46 @@ data:
     cp -force /k/flannel/* /host/k/flannel/
     cp -force /kube-proxy/kubeconfig.conf /host/k/flannel/kubeconfig.yml
     cp -force /var/run/secrets/kubernetes.io/serviceaccount/* /host/k/flannel/var/run/secrets/kubernetes.io/serviceaccount/
+
+    # From calico's installer
+    # Run the startup script whenever kubelet (re)starts. This makes sure that we refresh our Node annotations if
+    # kubelet recreates the Node resource.
+    $kubeletPid = -1
+    while ($True)
+    {
+        try
+        {
+            # Run calico-node.exe if kubelet starts/restarts
+            mv .\rancher-wins-sample.exe sample.exe
+            $currentKubeletPid = & wins cli process run --path C:\get-process.exe -args kubelet 2>&1
+            #$currentKubeletPid = (Get-Process -Name kubelet -ErrorAction Stop).id
+            if ($currentKubeletPid -NE $kubeletPid)
+            {
+                Write-Host "Kubelet has (re)started, (re)initialising the node..."
+                $kubeletPid = $currentKubeletPid
+                while ($true)
+                {
+                    .\calico-node.exe -startup
+                    if ($LastExitCode -EQ 0)
+                    {
+                        Write-Host "Calico node initialisation succeeded; monitoring kubelet for restarts..."
+                        break
+                    }
+
+                    Write-Host "Calico node initialisation failed, will retry..."
+                    Start-Sleep 1
+                }
+            }
+        }
+        catch
+        {
+            Write-Host "Kubelet not running, waiting for Kubelet to start..."
+            $kubeletPid = -1
+        }
+        Start-Sleep 10
+    }
+
+
     wins cli process run --path /k/flannel/setup.exe --args "--mode=overlay --interface=Ethernet 2"
     wins cli route add --addresses 169.254.169.254
     wins cli process run --path /k/flannel/flanneld.exe --args "--kube-subnet-mgr --kubeconfig-file /k/flannel/kubeconfig.yml" --envs "POD_NAME=$env:POD_NAME POD_NAMESPACE=$env:POD_NAMESPACE"

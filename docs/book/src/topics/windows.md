@@ -110,6 +110,8 @@ demonstrated in the [Kubeadm support for Windows](https://kubernetes.io/docs/tas
 Windows Privileged Container support is in [KEP](https://github.com/kubernetes/enhancements/pull/2037) form with plans to 
 implement in 1.21.  Kube-proxy and other CNI will then be replaced with the Privileged containers. 
 
-
+## CNI's
+### Calico 
+Windows can support only a single type of IP pool so it is important that you use only a single VXLAN IP pool in this mode.
 
 

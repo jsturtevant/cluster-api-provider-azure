@@ -4,9 +4,4 @@ kind: Cluster
 metadata:
   name: ${CLUSTER_NAME}
   labels:
-    cni: "flannel-windows"
-spec:
-  clusterNetwork:
-    pods:
-      cidrBlocks:
-      - 10.244.0.0/16
+    cni: "calico-windows"

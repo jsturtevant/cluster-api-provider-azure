@@ -68,10 +68,11 @@ spec:
       - path: C:\create-external-network.ps1
         permissions: "0744"
         content: |
-          # required as a work around for Flannel and Wins bugs
+          # required for Flannel and calico to prevent blips in network
           # https://github.com/coreos/flannel/issues/1359
           # https://github.com/kubernetes-sigs/sig-windows-tools/issues/103#issuecomment-709426828
           ipmo C:\k\debug\hns.psm1;
+          New-NetFirewallRule -Name OverlayTraffic4789UDP -Description "Overlay network traffic UDP" -Action Allow -LocalPort 4789 -Enabled True -DisplayName "Overlay Traffic 4789 UDP" -Protocol UDP -ErrorAction SilentlyContinue
           New-HnsNetwork -Type Overlay -AddressPrefix "192.168.255.0/30" -Gateway "192.168.255.1" -Name "External" -AdapterName "Ethernet 2" -SubnetPolicies @(@{Type = "VSID"; VSID = 9999; })
       - path: C:\configure-ssh.ps1
         permissions: "0744"

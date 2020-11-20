@@ -1,0 +1,201 @@
+---
+apiVersion: crd.projectcalico.org/v1
+kind: IPAMConfig
+metadata:
+  annotations:
+    projectcalico.org/metadata: '{"creationTimestamp":null}'
+  name: default
+spec:
+  autoAllocateBlocks: true
+  strictAffinity: true
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: kube-calico-windows-cfg
+  namespace: kube-system
+  labels:
+    tier: node
+    app: calico
+data:
+  run.ps1: |
+    $ErrorActionPreference = "Stop";
+
+    mkdir -force /host/etc/cni/net.d
+    mkdir -force /host/opt/cni/bin
+
+    mkdir -force /host/etc/cni/net.d
+    mkdir -force /host/etc/kube-ca
+    mkdir -force /host/opt/cni/bin
+    mkdir -force /host/k/calico
+    mkdir -force /host/k/flannel/var/run/secrets/kubernetes.io/serviceaccount
+
+    (Get-Content "$baseDir\cni.conf.template") | ForEach-Object {
+        $_.replace('__K8S_SERVICE_CIDR__', $env:K8S_SERVICE_CIDR)
+    } | Set-Content "$cniConfFile"
+
+    New-Item -path C:\k\nodename -name C:\k\nodename -type "file" -value ""
+    echo $env:NODE_NAME | Add-Content C:\k\nodename
+
+    #cp -force /etc/kube-flannel/net-conf.json /host/etc/kube-flannel
+    cp -force -recurse /cni/* /host/opt/cni/bin
+    #cp -force /k/flannel/* /host/k/flannel/
+    cp -force /kube-proxy/kubeconfig.conf /host/k/flannel/kubeconfig.yml
+    cp -force /var/run/secrets/kubernetes.io/serviceaccount/* /host/k/flannel/var/run/secrets/kubernetes.io/serviceaccount/
+
+
+    #wins cli process run --path /k/flannel/setup.exe --args "--mode=overlay --interface=Ethernet 2"
+    #wins cli route add --addresses 169.254.169.254
+    #wins cli process run --path /k/flannel/flanneld.exe --args "--kube-subnet-mgr --kubeconfig-file /k/flannel/kubeconfig.yml" --envs "POD_NAME=$env:POD_NAME POD_NAMESPACE=$env:POD_NAMESPACE"
+  cni-conf.json: |
+    {
+      "name": "Calico",
+      "windows_use_single_network": true,
+
+      "cniVersion": "0.3.1",
+      "type": "calico",
+      "mode": "vxlan",
+
+      "vxlan_mac_prefix":  "0E-2A",
+      "vxlan_vni": 4096,
+
+      "policy": {
+        "type": "k8s"
+      },
+
+      "log_level": "info",
+
+      "capabilities": {"dns": true},
+
+      "DNS":  {
+        "Nameservers":  ["10.96.0.10"],
+        "Search":  [
+          "svc.cluster.local"
+        ]
+      },
+
+      "nodename_file": "C:\\k\\nodename",
+
+      "datastore_type": "kubernetes",
+
+      "kubernetes": {
+        "kubeconfig": "c:\\CalicoWindows\\calico-kube-config"
+      },
+
+      "ipam": {
+        "type": "calico-ipam",
+        "subnet": "usePodCidr"
+      },
+
+      "policies":  [
+        {
+          "Name":  "EndpointPolicy",
+          "Value":  {
+            "Type":  "OutBoundNAT",
+            "ExceptionList":  [
+              "__K8S_SERVICE_CIDR__"
+            ]
+          }
+        },
+        {
+          "Name":  "EndpointPolicy",
+          "Value":  {
+            "Type":  "ROUTE",
+            "DestinationPrefix":  "__K8S_SERVICE_CIDR__",
+            "NeedEncap":  true
+          }
+        }
+      ]
+    }
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kube-flannel-ds-windows-amd64
+  labels:
+    tier: node
+    app: flannel
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: flannel
+  template:
+    metadata:
+      labels:
+        tier: node
+        app: flannel
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/os
+                    operator: In
+                    values:
+                      - windows
+                  - key: kubernetes.io/arch
+                    operator: In
+                    values:
+                      - amd64
+      hostNetwork: true
+      serviceAccountName: flannel
+      tolerations:
+      - operator: Exists
+        effect: NoSchedule
+      containers:
+      - name: kube-flannel
+        image: jsturtevant/calico:3.12.1
+        command:
+        - powershell
+        args:
+        - -file
+        - /etc/kube-flannel-windows/run.ps1
+        volumeMounts:
+        - name: wins
+          mountPath: \\.\pipe\rancher_wins
+        - name: host
+          mountPath: /host
+        - name: kube-proxy
+          mountPath: /kube-proxy
+        - name: cni
+          mountPath: /etc/cni/net.d
+        - name: calico-windows-cfg
+          mountPath: /etc/kube-calico-windows/
+        - name: kubeadm-config
+          mountPath: /etc/kubeadm-config/
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+      volumes:
+      - name: opt
+        hostPath:
+          path: /opt
+      - name: host
+        hostPath:
+          path: /
+      - name: cni
+        hostPath:
+          path: /etc
+      - name: calico-windows-cfg
+        configMap:
+          name: kube-calico-windows-cfg
+      - name: kube-proxy
+        configMap:
+          name: kube-proxy
+      - name: kubeadm-config
+        configMap:
+          name: kubeadm-config
+      - name: wins
+        hostPath:
+          path: \\.\pipe\rancher_wins
+          type: null
