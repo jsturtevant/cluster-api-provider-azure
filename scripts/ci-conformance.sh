@@ -95,4 +95,4 @@ cleanup() {
 
 trap cleanup EXIT
 
-make test-conformance
+make test-windows-upstream

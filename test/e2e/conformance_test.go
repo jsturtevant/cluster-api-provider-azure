@@ -24,6 +24,11 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+
+	"sigs.k8s.io/cluster-api-provider-azure/test/e2e/kubernetes/node"
+
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -70,12 +75,19 @@ var _ = Describe("Conformance Tests", func() {
 
 		kubernetesVersion := e2eConfig.GetVariable(capi_e2e.KubernetesVersion)
 		flavor := clusterctl.DefaultFlavor
+		if strings.Contains(kubetestConfigFilePath, "windows") {
+			flavor = "windows"
+		}
 		if useCIArtifacts {
 			flavor = "conformance-ci-artifacts"
+			if strings.Contains(kubetestConfigFilePath, "windows") {
+				flavor = "conformance-ci-artifacts-windows"
+			}
 			kubernetesVersion, err = kubernetesversions.LatestCIRelease()
 			Expect(err).NotTo(HaveOccurred())
 			Expect(os.Setenv("CI_VERSION", kubernetesVersion)).To(Succeed())
 		}
+
 		workerMachineCount, err := strconv.ParseInt(e2eConfig.GetVariable("CONFORMANCE_WORKER_MACHINE_COUNT"), 10, 64)
 		Expect(err).NotTo(HaveOccurred())
 		controlPlaneMachineCount, err := strconv.ParseInt(e2eConfig.GetVariable("CONFORMANCE_CONTROL_PLANE_MACHINE_COUNT"), 10, 64)
@@ -105,14 +117,33 @@ var _ = Describe("Conformance Tests", func() {
 
 		b.RecordValue("cluster creation", runtime.Seconds())
 		workloadProxy := bootstrapClusterProxy.GetWorkloadCluster(ctx, namespace.Name, clusterName)
+
+		// Windows requires a taint on control nodes nodes since not all conformance tests have ability to run
+		if strings.Contains(kubetestConfigFilePath, "windows") {
+			options := v1.ListOptions{
+				LabelSelector: "kubernetes.io/os=linux",
+			}
+
+			noScheduleTaint := &corev1.Taint{
+				Key:    "node-role.kubernetes.io/master",
+				Value:  "",
+				Effect: "NoSchedule",
+			}
+
+			err := node.TaintNode(workloadProxy.GetClientSet(), options, noScheduleTaint)
+			Expect(err).NotTo(HaveOccurred())
+		}
+
 		runtime = b.Time("conformance suite", func() {
-			kubetest.Run(
+			err := kubetest.Run(
 				kubetest.RunInput{
-					ClusterProxy:   workloadProxy,
-					NumberOfNodes:  int(workerMachineCount),
-					ConfigFilePath: kubetestConfigFilePath,
+					ClusterProxy:         workloadProxy,
+					NumberOfNodes:        int(workerMachineCount),
+					ConfigFilePath:       kubetestConfigFilePath,
+					KubeTestRepoListPath: kubetestRepoListPath,
 				},
 			)
+			Expect(err).NotTo(HaveOccurred())
 		})
 		b.RecordValue("conformance suite run time", runtime.Seconds())
 	}, 1)

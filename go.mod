@@ -41,3 +41,5 @@ require (
 )
 
 replace github.com/Azure/go-autorest => github.com/Azure/go-autorest v14.2.0+incompatible
+
+replace sigs.k8s.io/cluster-api => github.com/jsturtevant/cluster-api v0.2.6-0.20210120232809-7c370ce76bb2
