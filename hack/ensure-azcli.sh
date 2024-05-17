@@ -25,5 +25,12 @@ if [[ -z "$(command -v az)" ]]; then
   AZ_REPO=$(lsb_release -cs)
   echo "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ ${AZ_REPO} main" | tee /etc/apt/sources.list.d/azure-cli.list
   apt-get update && apt-get install -y azure-cli
-  az login --service-principal -u "${AZURE_CLIENT_ID}" -p "${AZURE_CLIENT_SECRET}" --tenant "${AZURE_TENANT_ID}" > /dev/null
+
+  # attempt to use managed identity to login
+  # using timeout, since a VM with out it will have a much longer timeout by default and can't override the az command timeout
+  if ! timeout --foreground 10 bash -c "az login --identity -u ${AZURE_CLIENT_ID}"; then
+    echo "failed to login with managed identity, trying service principal"
+    az login --service-principal -u "${AZURE_CLIENT_ID}" -p "${AZURE_CLIENT_SECRET}" --tenant "${AZURE_TENANT_ID}" > /dev/null
+  fi
+
 fi
